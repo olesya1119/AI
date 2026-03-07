@@ -2,16 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
-
-# обучаем модель
-X, y = load_iris(return_X_y=True)
-model = LogisticRegression()
-model.fit(X, y)
+import uvicorn
 
 app = FastAPI()
+model = None
 
 
-# схема входных данных (валидация)
 class IrisInput(BaseModel):
     sepal_length: float
     sepal_width: float
@@ -32,3 +28,21 @@ def predict(data: IrisInput):
     prediction = model.predict(features)[0]
 
     return {"prediction": int(prediction)}
+
+
+def main():
+    global model
+
+    # загрузка данных
+    X, y = load_iris(return_X_y=True)
+
+    # обучение модели
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X, y)
+
+    # запуск сервера
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+
+
+if __name__ == "__main__":
+    main()
